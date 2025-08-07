@@ -12,6 +12,7 @@ def process_signal(signal, window_size):
     return s_n
 
 def process_group(signals, label, window_size, base_save_dir):
+    print(f"processing {label} signals")
     save_dir = os.path.join(base_save_dir, label)
     os.makedirs(save_dir, exist_ok=True)
 
@@ -19,9 +20,11 @@ def process_group(signals, label, window_size, base_save_dir):
         print(f"Processing {label} signal {idx}")
         p_s = process_signal(s, window_size)
 
+        print("computing ceemdan and reconstrucing signal")
         imfs, recon = ceemdan_reconstruct_midband(p_s, imf_range=(2, 5))
         imfs.append(recon)  # Add the reconstructed signal as the final item
 
+        print("computing TFD")
         for i, imf in enumerate(imfs):
             qtfd_image = compute_qtfd(imf, fs=2000)
 
@@ -38,9 +41,10 @@ def main():
     os.makedirs(base_save_dir, exist_ok=True)
 
     window_size = 25
-    healthy_dir = "../data/open_vag/normal/"
-    pathology_dir = "../data/open_vag/pathology/"
+    healthy_dir = "data/open_vag/normal/"
+    pathology_dir = "data/open_vag/pathology/"
 
+    print("loading vag signals")
     h_signals, p_signals = load_vag_signals(healthy_dir, pathology_dir)
 
     process_group(h_signals, label="healthy", window_size=window_size, base_save_dir=base_save_dir)

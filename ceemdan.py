@@ -23,6 +23,10 @@ def ceemdan_reconstruct_midband(signal, imf_range=(2, 5)):
     imfs, _ = compute_ceemdan_imfs(signal, seed=42)
 
     start, end = imf_range
+    selected_imfs = imfs[start:end]  # IMFs in the desired band
+
     print("reconstructing signal..")
-    reconstructed = np.sum(imfs[start:end], axis=0)
-    return imfs, reconstructed
+    reconstructed = np.sum(selected_imfs, axis=0)
+
+    return list(selected_imfs), reconstructed  # Return as list for consistency
+
