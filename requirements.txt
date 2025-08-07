@@ -1,0 +1,6 @@
+numpy
+scipy
+EMD-signal
+matplotlib
+pandas
+tftb

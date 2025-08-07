@@ -1,0 +1,14 @@
+
+Pipeline to classifiy VAG signals
+
+AUTOENCODE-KNEE: Automatic feature extraction using CNN-based Autoencoder from TimeFrequency Distribution of Knee Joint
+
+PRE PROCESSING
+
+
+1. Resample signal (8192)
+2. Artefact elimination - double-cascaded moving average filter
+3. signal normalisation - between -1 and 1
+4. CEEMDAN EMD decomposition - 7 IMFs - use 3,4 and 5 plus the reconstructed signal
+5. TFD for reconstructed VAG signals (89) and individual IMFs (3x89)
+
