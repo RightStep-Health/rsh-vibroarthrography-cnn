@@ -4,3 +4,5 @@ EMD-signal
 matplotlib
 pandas
 tftb
+torch
+umap
