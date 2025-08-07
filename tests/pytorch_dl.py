@@ -1,9 +1,15 @@
 # test the group data loader that reads for images per signal
 
+import sys
+import os
+
+# Add parent directory to path
+sys.path.append(os.path.abspath('..'))
+
 from pytorch_data_loader import GroupedIMFDataset
 from torch.utils.data import DataLoader
 
-dataset = GroupedIMFDataset("TFDs/")
+dataset = GroupedIMFDataset("../TFDs/")
 dataloader = DataLoader(dataset, batch_size=16, shuffle=True)
 
 for signal_images, signal_labels in dataloader:

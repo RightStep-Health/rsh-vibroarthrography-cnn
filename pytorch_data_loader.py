@@ -7,32 +7,32 @@ import torch
 
 class GroupedIMFDataset(Dataset):
     def __init__(self, root_dir):
-        self.groups = defaultdict(list)  # key: signal ID, value: list of image paths
-        self.labels = {}  # key: signal ID, value: label (0=healthy, 1=pathology)
+        self.groups = defaultdict(list)
+        self.labels = {}
 
-        for fname in os.listdir(root_dir):
-            if fname.endswith('.png'):
-                parts = fname.split('_')  # e.g. healthy_0_imf_1.png → ['healthy', '0', 'imf', '1.png']
-                label_str = parts[0]
-                signal_id = f"{label_str}_{parts[1]}"  # e.g. healthy_0
+        for dirpath, _, filenames in os.walk(root_dir):
+            for fname in filenames:
+                if fname.endswith('.png'):
+                    parts = fname.split('_')  # e.g. healthy_0_imf_1.png
+                    label_str = parts[0]
+                    signal_id = f"{label_str}_{parts[1]}"
 
-                full_path = os.path.join(root_dir, fname)
-                self.groups[signal_id].append(full_path)
-                self.labels[signal_id] = 0 if label_str == "healthy" else 1
+                    full_path = os.path.join(dirpath, fname)
+                    self.groups[signal_id].append(full_path)
+                    self.labels[signal_id] = 0 if label_str == "healthy" else 1
 
         self.signal_ids = list(self.groups.keys())
 
-        # Sort images within each signal group
         for signal_id in self.signal_ids:
             self.groups[signal_id] = sorted(
                 self.groups[signal_id],
-                key=lambda x: ("recon" not in x, x)  # ensures recon comes last
+                key=lambda x: ("recon" not in x, x)
             )
 
         self.transform = transforms.Compose([
             transforms.Grayscale(num_output_channels=1),
             transforms.ToTensor(),
-            transforms.Normalize(mean=[0.5], std=[0.5])
+            #transforms.Normalize(mean=[0.5], std=[0.5])
         ])
 
     def __len__(self):
