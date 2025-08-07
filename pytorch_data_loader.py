@@ -46,3 +46,42 @@ class GroupedIMFDataset(Dataset):
         images = [self.transform(Image.open(p)) for p in image_paths]
         images = torch.stack(images, dim=0)  # shape: [4, 1, H, W]
         return images, label
+
+import os
+from pathlib import Path
+
+class SpectrogramDataset(Dataset):
+    def __init__(self, root_dir):
+        self.image_paths = []
+        self.labels = []
+        self.transform = transforms.Compose([
+            transforms.Grayscale(num_output_channels=1),
+            transforms.ToTensor(),
+            # transforms.Normalize(mean=[0.5], std=[0.5])  # optional
+        ])
+
+        root_path = Path(root_dir)
+        for subdir in root_path.iterdir():
+            if subdir.is_dir():
+                for img_path in subdir.glob("*.png"):
+                    fname = img_path.name  # e.g. "0_healthy.png"
+                    parts = fname.split('_')
+                    if len(parts) < 2:
+                        continue  # skip unexpected filename
+
+                    label_str = parts[1].split('.')[0].lower()  # 'healthy' or 'pathology'
+                    label = 0 if label_str == 'healthy' else 1
+
+                    self.image_paths.append(str(img_path))
+                    self.labels.append(label)
+
+    def __len__(self):
+        return len(self.image_paths)
+
+    def __getitem__(self, idx):
+        image = Image.open(self.image_paths[idx])
+        #print(f"Loaded image size: {image.size}")  # PIL Image size (width, height)
+        image = self.transform(image)
+        #print(f"Tensor shape after transform: {image.shape}")  # [C, H, W]
+        label = self.labels[idx]
+        return image, label
