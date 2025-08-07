@@ -107,7 +107,7 @@ import librosa.display
 def save_qtfd_image(qtfd_matrix, save_path, sr=2000):
     print(f"saving TDF to {save_path}")
     plt.figure(figsize=(4, 2))
-    librosa.display.specshow(qtfd_matrix.T, sr=sr, x_axis='time', y_axis='linear', cmap='magma', origin='lower')
+    librosa.display.specshow(qtfd_matrix, sr=sr, x_axis='time', y_axis='linear', cmap='magma')
     plt.axis('off')
     plt.tight_layout(pad=0)
     plt.savefig(save_path, bbox_inches='tight', pad_inches=0)
