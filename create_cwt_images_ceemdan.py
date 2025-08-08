@@ -41,10 +41,44 @@ def compute_cwt_image(signal, fs=2000, wavelet='morl', num_scales=128):
     return scalogram, freqs, time
 
 
+from PIL import Image
+import matplotlib.cm as cm
+
+def save_cwt_multichannel(scalogram, save_path):
+    # Normalize scalogram to 0–1
+    scalogram_norm = (scalogram - np.min(scalogram)) / (np.max(scalogram) - np.min(scalogram) + 1e-12)
+
+    # Channel 1: Magma colormap
+    magma_rgb = cm.get_cmap('magma')(scalogram_norm)[..., :3]  # Drop alpha
+    # change to this next time magma_rgb = cm.colormaps['magma'](scalogram_norm)[..., :3]  # Drop alpha
+
+    # Channel 2: Grayscale magnitude
+    gray = np.expand_dims(scalogram_norm, axis=-1).repeat(3, axis=-1)
+
+    # Channel 3: Log-scaled magnitude
+    scalogram_log = np.log1p(scalogram)  # log(1+x)
+    scalogram_log_norm = (scalogram_log - np.min(scalogram_log)) / (np.max(scalogram_log) - np.min(scalogram_log) + 1e-12)
+    log_gray = np.expand_dims(scalogram_log_norm, axis=-1).repeat(3, axis=-1)
+
+    # Stack as separate channels in a single image (H, W, 3)
+    combined = np.stack([
+        magma_rgb[..., 0],  # R from magma
+        gray[..., 0],       # grayscale
+        log_gray[..., 0]    # log-scaled grayscale
+    ], axis=-1)
+
+    # Convert to uint8 and resize
+    img = (combined * 255).astype(np.uint8)
+    img = Image.fromarray(img).resize((244, 244), Image.BICUBIC)
+
+    img.save(save_path)
+    print(f"Saved multichannel CWT to {save_path}")
+
+
 def save_cwt_image(scalogram, freqs, time, save_path):
     print(f"saving CWT scalogram to {save_path}")
     dpi = 100
-    width_px, height_px = 125, 129
+    width_px, height_px = 244, 244 # standard size for resnet #125, 129
     plt.figure(figsize=(width_px / dpi, height_px / dpi), dpi=dpi)
 
     # Convert to dB for better visual contrast
@@ -53,7 +87,7 @@ def save_cwt_image(scalogram, freqs, time, save_path):
     plt.imshow(
         scalogram_db,
         extent=[time.min(), time.max(), freqs.min(), freqs.max()],
-        cmap='viridis',
+        cmap= 'magma', #'viridis',
         aspect='auto',
         origin='lower'
     )
@@ -72,7 +106,7 @@ def main():
     print("loading vag signals")
     h_signals, p_signals = load_vag_signals(healthy_dir, pathology_dir)
 
-    base_save_dir = "EMD_CWT/"
+    base_save_dir = "EMD_CWT_244/"
 
     save_dir = os.path.join(base_save_dir, "healthy")
     os.makedirs(save_dir, exist_ok=True)
@@ -84,8 +118,8 @@ def main():
         _, recon = ceemdan_reconstruct_midband(p_s, imf_range=(2, 5))
         scalogram, freqs, time = compute_cwt_image(recon, fs=fs)
         print("Scalogram shape:", scalogram.shape)
-        save_cwt_image(scalogram, freqs, time, fpath)
-
+        #save_cwt_image(scalogram, freqs, time, fpath)
+        save_cwt_multichannel(scalogram, fpath)
     save_dir = os.path.join(base_save_dir, "pathology")
     os.makedirs(save_dir, exist_ok=True)
 
@@ -96,7 +130,10 @@ def main():
         _, recon = ceemdan_reconstruct_midband(p_s, imf_range=(2, 5))
         scalogram, freqs, time = compute_cwt_image(recon, fs=fs)
         print("Scalogram shape:", scalogram.shape)
-        save_cwt_image(scalogram, freqs, time, fpath)
+        
+        #save_cwt_image(scalogram, freqs, time, fpath) single channel color png
+        save_cwt_multichannel(scalogram, fpath)
+
 
 
 if __name__ == "__main__":
