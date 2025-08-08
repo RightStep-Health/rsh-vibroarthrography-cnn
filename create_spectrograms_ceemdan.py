@@ -1,5 +1,8 @@
 import numpy as np
+import matplotlib
+matplotlib.use('Agg')  # non-interactive backend for saving files only
 import matplotlib.pyplot as plt
+
 from scipy.signal import stft, get_window
 from data_loader import load_vag_signals
 import os
@@ -18,7 +21,7 @@ def compute_stft_image(signal, fs=2000, window_size=256, hop_size=64):
             fs=fs,
             window=window,
             nperseg=window_size,
-            noverlap=window_size //2,
+            noverlap=window_size - hop_size,
             nfft=256,
             return_onesided=True,
             padded=False,

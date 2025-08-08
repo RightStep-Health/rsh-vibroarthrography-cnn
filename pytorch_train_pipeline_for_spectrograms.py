@@ -100,7 +100,7 @@ def visualize_latent_space(latents, labels, method="tsne"):
 # MAIN
 # --------------------------
 def main():
-    dataset = SpectrogramDataset("SPECS/")
+    dataset = SpectrogramDataset("EMD_CWT/")
     dataloader = DataLoader(dataset, batch_size=16, shuffle=True)
 
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")

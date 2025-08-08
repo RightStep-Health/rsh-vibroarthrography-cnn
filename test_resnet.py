@@ -1,4 +1,5 @@
 import os
+import numpy as np
 import torch
 import torch.nn as nn
 import torch.optim as optim
@@ -9,9 +10,19 @@ from PIL import Image
 from tqdm import tqdm
 from sklearn.model_selection import train_test_split
 from sklearn.metrics import classification_report, confusion_matrix
+from sklearn.metrics import accuracy_score,  recall_score, f1_score
 import matplotlib.pyplot as plt
 import seaborn as sns
 
+# -----------------
+
+#Class weights calculated from dataset label distribution and used in CrossEntropyLoss.
+
+#Augmentation tweaks: Add ColorJitter to your transforms.#
+
+#Threshold tuning: Instead of fixed argmax on outputs, apply sigmoid on the "Pathological" class output probs and vary threshold (for binary classification) — printing accuracy, recall, F1 at different thresholds.
+
+# -----------------
 
 # --------------------------
 # Model: ResNet18 for Spectrograms with pretrained weights adapted to 1-channel
@@ -55,28 +66,32 @@ class SpectrogramImageDataset(Dataset):
                     self.image_paths.append(os.path.join(class_dir, fname))
                     self.labels.append(label)
 
+        self.labels = np.array(self.labels)  # For easier computation
+
     def __len__(self):
         return len(self.image_paths)
 
     def __getitem__(self, idx):
         img_path = self.image_paths[idx]
         label = self.labels[idx]
-        image = Image.open(img_path).convert("L")  # Grayscale
+        image = Image.open(img_path).convert("L")
 
         if self.transform:
             image = self.transform(image)
 
         return image, label
 
-
 # --------------------------
 # Training Loop
 # --------------------------
-def train_classifier(model, dataloader, device, epochs=20, lr=1e-5):
+def train_classifier(model, dataloader, device, class_weights,  epochs=20, lr=1e-5):
     model.to(device)
     model.train()
+
+    # added class weights
+    criterion = nn.CrossEntropyLoss(weight=class_weights.to(device))
     optimizer = optim.Adam(model.parameters(), lr=lr)
-    criterion = nn.CrossEntropyLoss()
+
 
     for epoch in range(epochs):
         total_loss = 0
@@ -107,33 +122,61 @@ def train_classifier(model, dataloader, device, epochs=20, lr=1e-5):
 # --------------------------
 # Evaluation
 # --------------------------
-def evaluate_model(model, dataloader, device):
+def evaluate_model_with_thresholds(model, dataloader, device):
     model.eval()
     model.to(device)
 
     y_true = []
-    y_pred = []
+    y_scores = []  # Store softmax probs for pathological class
 
     with torch.no_grad():
         for images, labels in dataloader:
             images = images.to(device)
             labels = labels.to(device)
 
-            outputs = model(images)
-            preds = torch.argmax(outputs, dim=1)
+            outputs = model(images)  # shape [batch, 2]
+            probs = torch.softmax(outputs, dim=1)[:, 1]  # Probability for "pathology" class
 
             y_true.extend(labels.cpu().numpy())
-            y_pred.extend(preds.cpu().numpy())
+            y_scores.extend(probs.cpu().numpy())
 
-    print("\n🧪 Classification Report:")
-    print(classification_report(y_true, y_pred, target_names=["Healthy", "Pathological"]))
+    y_true = np.array(y_true)
+    y_scores = np.array(y_scores)
 
-    cm = confusion_matrix(y_true, y_pred)
+    # Threshold tuning loop
+    thresholds = np.arange(0.1, 0.91, 0.1)
+    print("\nThreshold tuning results (Pathological class probability cutoff):")
+    print(f"{'Thresh':>6} {'Accuracy':>8} {'Recall':>8} {'F1':>8}")
+
+    best_thresh = 0.5
+    best_f1 = 0
+    for thresh in thresholds:
+        y_pred_thresh = (y_scores >= thresh).astype(int)
+        acc = accuracy_score(y_true, y_pred_thresh)
+        recall = recall_score(y_true, y_pred_thresh)
+        f1 = f1_score(y_true, y_pred_thresh)
+
+        print(f"{thresh:6.2f} {acc:8.3f} {recall:8.3f} {f1:8.3f}")
+
+        if f1 > best_f1:
+            best_f1 = f1
+            best_thresh = thresh
+
+    print(f"\nBest threshold by F1 score: {best_thresh:.2f} with F1 = {best_f1:.3f}")
+
+    # Final classification report and confusion matrix at best threshold
+    y_pred_final = (y_scores >= best_thresh).astype(int)
+
+    print("\n🧪 Classification Report at best threshold:")
+    print(classification_report(y_true, y_pred_final, target_names=["Healthy", "Pathological"]))
+
+    cm = confusion_matrix(y_true, y_pred_final)
     plt.figure(figsize=(5, 4))
-    sns.heatmap(cm, annot=True, fmt='d', cmap='Blues', xticklabels=["Healthy", "Pathological"], yticklabels=["Healthy", "Pathological"])
+    sns.heatmap(cm, annot=True, fmt='d', cmap='Blues', 
+                xticklabels=["Healthy", "Pathological"], yticklabels=["Healthy", "Pathological"])
     plt.xlabel("Predicted")
     plt.ylabel("True")
-    plt.title("Confusion Matrix")
+    plt.title(f"Confusion Matrix (threshold={best_thresh:.2f})")
     plt.tight_layout()
     plt.show()
 
@@ -142,28 +185,37 @@ def evaluate_model(model, dataloader, device):
 # Main
 # --------------------------
 def main():
-    data_root = "SPECS/"
+    data_root = "EMD_CWT/"
     batch_size = 16
     epochs = 30
-    lr = 1e-5  # lower lr for fine-tuning pretrained weights
+    lr = 1e-5
     num_classes = 2
 
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+    print(f"Using device: {device}")
 
+    # Augmentations including ColorJitter
     transform = transforms.Compose([
         transforms.Resize((224, 224)),
-        transforms.RandomHorizontalFlip(),  # simple augmentation
+        transforms.RandomHorizontalFlip(),
+        #transforms.ColorJitter(brightness=0.3, contrast=0.3),
         transforms.ToTensor(),
     ])
 
-    # Load full dataset
     full_dataset = SpectrogramImageDataset(data_root, transform=transform)
 
-    # Train/Val split stratified by labels
+    # Compute class weights: inverse frequency
+    labels = full_dataset.labels
+    class_sample_counts = np.bincount(labels)
+    class_weights = 1.0 / class_sample_counts
+    class_weights = class_weights / class_weights.sum() * len(class_sample_counts)
+    class_weights = torch.tensor(class_weights, dtype=torch.float32)
+    print(f"Class weights: {class_weights.numpy()}")
+
     train_indices, val_indices = train_test_split(
         list(range(len(full_dataset))),
         test_size=0.2,
-        stratify=full_dataset.labels,
+        stratify=labels,
         random_state=42,
     )
 
@@ -175,14 +227,11 @@ def main():
 
     model = SpectrogramResNet18(num_classes=num_classes)
 
-    # Train the model
-    train_classifier(model, train_loader, device, epochs=epochs, lr=lr)
+    train_classifier(model, train_loader, device, class_weights, epochs=epochs, lr=lr)
 
-    # Evaluate on validation set
-    evaluate_model(model, val_loader, device)
+    evaluate_model_with_thresholds(model, val_loader, device)
 
-    # Save the fine-tuned model weights
-    torch.save(model.state_dict(), "resnet_spectrogram_classifier.pth")
+    torch.save(model.state_dict(), "resnet_spectrogram_classifier_weighted.pth")
 
 
 if __name__ == "__main__":
