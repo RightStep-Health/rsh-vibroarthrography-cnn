@@ -9,7 +9,7 @@ def apply_ceemdan(signal, noise_seed=42):
     return IMFs
 
 
-def compute_ceemdan_imfs(x, trials=100, epsilon=0.1, seed=None):
+def compute_ceemdan_imfs(x, trials=50, epsilon=0.1, seed=None):
     ceemdan = CEEMDAN(trials=trials, epsilon=epsilon, parallel=True)
     if seed is not None:
         ceemdan.noise_seed(seed)

@@ -2,6 +2,27 @@ import matplotlib.pyplot as plt
 import numpy as np
 import preprocess_functions as preF
 
+def plot_spectrogram(spec, f, t, title="STFT Spectrogram"):
+    plt.figure(figsize=(10, 4))
+    # Convert magnitude to dB
+    spec_db = 10 * np.log10(spec + 1e-10)
+
+    # Use extent to map axes to frequency (f) and time (t)
+    plt.imshow(
+        spec_db,
+        aspect='auto',
+        origin='lower',
+        cmap='viridis',
+        extent=[t.min(), t.max(), f.min(), f.max()]
+    )
+    plt.title(title)
+    plt.ylabel('Frequency (Hz)')
+    plt.xlabel('Time (s)')
+    plt.colorbar(label='Power (dB)')
+    plt.tight_layout()
+    plt.show()
+
+
 def plot_raw_vs_filtered_single(raw_signal, filtered_signal, label="Signal", fs=2000):
 
 
