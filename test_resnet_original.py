@@ -184,7 +184,7 @@ def main():
     evaluate_model(model, val_loader, device)
 
     # Save the fine-tuned model weights
-    torch.save(model.state_dict(), "resnet_spectrogram_classifier.pth")
+    torch.save(model.state_dict(), "models/resnet_spectrogram_classifier.pth")
 
 
 if __name__ == "__main__":

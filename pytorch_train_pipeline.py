@@ -86,7 +86,6 @@ def main():
 
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
-    # Replace H and W based on your actual image size
     H, W = 200, 400
     model = CNNAutoencoder(latent_dim=128, in_channels=4, image_size=(H, W)).to(device)
 
