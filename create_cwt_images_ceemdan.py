@@ -78,7 +78,7 @@ def save_cwt_multichannel(scalogram, save_path):
 def save_cwt_image(scalogram, freqs, time, save_path):
     print(f"saving CWT scalogram to {save_path}")
     dpi = 100
-    width_px, height_px = 244, 244 # standard size for resnet #125, 129
+    width_px, height_px = 244, 244 # standard size for resnet - was #125, 129
     plt.figure(figsize=(width_px / dpi, height_px / dpi), dpi=dpi)
 
     # Convert to dB for better visual contrast
@@ -133,8 +133,6 @@ def main():
         
         #save_cwt_image(scalogram, freqs, time, fpath) single channel color png
         save_cwt_multichannel(scalogram, fpath)
-
-
 
 if __name__ == "__main__":
     main()

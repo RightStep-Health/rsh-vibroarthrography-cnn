@@ -4,7 +4,7 @@ import numpy as np
 
 def apply_ceemdan(signal, noise_seed=42):
     ceemdan = CEEMDAN()
-    #ceemdan.noise_seed(noise_seed)
+    ceemdan.noise_seed(noise_seed)
     IMFs = ceemdan(signal)
     return IMFs
 
