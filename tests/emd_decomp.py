@@ -5,10 +5,10 @@ import numpy as np
 # Add parent directory to path
 sys.path.append(os.path.abspath('..'))
 
-from data_loader import load_vag_signals
-from plotting import plot_imfs
-from preprocess_functions import preprocess_vag_signal, pad_to_target
-from ceemdan import compute_ceemdan_imfs
+from vag_cnn.data_loader import load_vag_signals
+from vag_cnn.plotting import plot_imfs
+from vag_cnn.preprocess_functions import preprocess_vag_signal, pad_to_target
+from vag_cnn.ceemdan import compute_ceemdan_imfs
 
 def process_signals(signals, window_size):
     processed = []

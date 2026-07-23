@@ -3,13 +3,13 @@
 import sys
 import os
 
-# Add parent directory to path
-sys.path.append(os.path.abspath('..'))
+# Add repo root to path
+sys.path.append(os.path.abspath('.'))
 
-from pytorch_data_loader import GroupedIMFDataset
+from vag_cnn.pytorch_data_loader import GroupedIMFDataset
 from torch.utils.data import DataLoader
 
-dataset = GroupedIMFDataset("../TFDs/")
+dataset = GroupedIMFDataset("images/TFDs/")
 dataloader = DataLoader(dataset, batch_size=16, shuffle=True)
 
 for signal_images, signal_labels in dataloader:

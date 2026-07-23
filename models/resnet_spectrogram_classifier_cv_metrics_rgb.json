@@ -1,0 +1,55 @@
+{
+  "methodology": {
+    "input_mode": "rgb",
+    "seed": 42,
+    "folds": 5,
+    "batch_size": 16,
+    "epochs": 30,
+    "learning_rate": 0.0001,
+    "data_root": "images/EMD_CWT_244/"
+  },
+  "fold_metrics": [
+    {
+      "fold": 1,
+      "train_size": 71,
+      "validation_size": 18,
+      "accuracy": 0.6666666666666666,
+      "pathological_f1": 0.4
+    },
+    {
+      "fold": 2,
+      "train_size": 71,
+      "validation_size": 18,
+      "accuracy": 0.6666666666666666,
+      "pathological_f1": 0.625
+    },
+    {
+      "fold": 3,
+      "train_size": 71,
+      "validation_size": 18,
+      "accuracy": 0.6111111111111112,
+      "pathological_f1": 0.36363636363636365
+    },
+    {
+      "fold": 4,
+      "train_size": 71,
+      "validation_size": 18,
+      "accuracy": 0.5555555555555556,
+      "pathological_f1": 0.5
+    },
+    {
+      "fold": 5,
+      "train_size": 72,
+      "validation_size": 17,
+      "accuracy": 0.47058823529411764,
+      "pathological_f1": 0.18181818181818182
+    }
+  ],
+  "aggregate_metrics": {
+    "mean_accuracy": 0.5941176470588235,
+    "std_accuracy": 0.07424560429366235,
+    "mean_pathological_f1": 0.41409090909090907,
+    "std_pathological_f1": 0.14734846537352833
+  },
+  "out_of_fold_classification_report": "              precision    recall  f1-score   support\n\n     Healthy       0.62      0.76      0.68        51\nPathological       0.54      0.37      0.44        38\n\n    accuracy                           0.60        89\n   macro avg       0.58      0.57      0.56        89\nweighted avg       0.58      0.60      0.58        89\n"
+}

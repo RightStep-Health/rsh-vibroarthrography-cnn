@@ -2,9 +2,9 @@ import sys
 import os
 sys.path.append(os.path.abspath('..'))  # Adds parent directory to path
 
-from data_loader import load_vag_signals
-from plotting import plot_raw_vs_filtered, plot_raw_vs_filtered_single
-from preprocess_functions import preprocess_vag_signal, pad_to_target
+from vag_cnn.data_loader import load_vag_signals
+from vag_cnn.plotting import plot_raw_vs_filtered, plot_raw_vs_filtered_single
+from vag_cnn.preprocess_functions import preprocess_vag_signal, pad_to_target
 
 healthy_dir = "../data/open_vag/normal/"
 pathology_dir = "../data/open_vag/pathology/"

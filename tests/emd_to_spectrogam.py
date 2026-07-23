@@ -11,10 +11,10 @@ import numpy as np
 from scipy.signal import stft, get_window
 sys.path.append(os.path.abspath('..'))
 
-from data_loader import load_vag_signals
-from plotting import plot_original_vs_reconstructed, plot_spectrogram
-from preprocess_functions import preprocess_vag_signal, pad_to_target
-from ceemdan import ceemdan_reconstruct_midband
+from vag_cnn.data_loader import load_vag_signals
+from vag_cnn.plotting import plot_original_vs_reconstructed, plot_spectrogram
+from vag_cnn.preprocess_functions import preprocess_vag_signal, pad_to_target
+from vag_cnn.ceemdan import ceemdan_reconstruct_midband
 
 def process_signals(signals, window_size):
     processed = []
@@ -70,4 +70,3 @@ def main():
 
 if __name__ == "__main__":
     main()
-
