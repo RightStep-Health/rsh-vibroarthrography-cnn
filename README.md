@@ -1,6 +1,6 @@
 # rsh-vibroarthrography-cnn
 
-This project was created as part of the SEKMO program in collaboration with TalTech.
+This project was created as part of the SEKMO program in collaboration with the Centre for Environmental Intelligence and Sensing at Taltech
 
 This repository is an experiment workspace for classifying knee-joint vibroarthrography (VAG) signals with image-based deep learning workflows.
 
